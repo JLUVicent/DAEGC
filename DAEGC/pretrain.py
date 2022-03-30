@@ -56,9 +56,11 @@ def pretrain(dataset):
 
 
 if __name__ == "__main__":
+    # 描述性信息
     parser = argparse.ArgumentParser(
         description="train", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+    # 命令行后面添加的参数
     parser.add_argument("--name", type=str, default="Citeseer")
     parser.add_argument("--max_epoch", type=int, default=100)
     parser.add_argument("--lr", type=float, default=0.001)
@@ -71,9 +73,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
+    # 是否使用cuda，
     print("use cuda: {}".format(args.cuda))
+    # 选择使用cuda还是cpu。
     device = torch.device("cuda" if args.cuda else "cpu")
-
+    # 数据集
     datasets = utils.get_dataset(args.name)
     dataset = datasets[0]
 
