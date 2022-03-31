@@ -23,7 +23,8 @@ def pretrain(dataset):
         alpha=args.alpha,
     ).to(device)
     print(model)
-    optimizer = Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = Adam(model.parameters(), lr=args.lr,
+                     weight_decay=args.weight_decay)
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -51,7 +52,8 @@ def pretrain(dataset):
             acc, nmi, ari, f1 = eva(y, kmeans.labels_, epoch)
         if epoch % 5 == 0:
             torch.save(
-                model.state_dict(), f"./pretrain/predaegc_{args.name}_{epoch}.pkl"
+                model.state_dict(
+                ), f"./pretrain/predaegc_{args.name}_{epoch}.pkl"
             )
 
 
@@ -80,6 +82,7 @@ if __name__ == "__main__":
     # 数据集
     datasets = utils.get_dataset(args.name)
     dataset = datasets[0]
+    print(type(dataset))
 
     if args.name == "Citeseer":
         args.lr = 0.005
@@ -99,4 +102,4 @@ if __name__ == "__main__":
     args.input_dim = dataset.num_features
 
     print(args)
-    pretrain(dataset)
+    # pretrain(dataset)

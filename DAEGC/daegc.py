@@ -25,12 +25,13 @@ class DAEGC(nn.Module):
 
         # get pretrain model
         self.gat = GAT(num_features, hidden_size, embedding_size, alpha)
-        self.gat.load_state_dict(torch.load(args.pretrain_path, map_location='cpu'))
+        self.gat.load_state_dict(torch.load(
+            args.pretrain_path, map_location='cpu'))
 
         # cluster layer
-        self.cluster_layer = Parameter(torch.Tensor(num_clusters, embedding_size))
+        self.cluster_layer = Parameter(
+            torch.Tensor(num_clusters, embedding_size))
         torch.nn.init.xavier_normal_(self.cluster_layer.data)
-
 
     def forward(self, x, adj, M):
         A_pred, z = self.gat(x, adj, M)
@@ -39,20 +40,24 @@ class DAEGC(nn.Module):
         return A_pred, z, q
 
     def get_Q(self, z):
-        q = 1.0 / (1.0 + torch.sum(torch.pow(z.unsqueeze(1) - self.cluster_layer, 2), 2) / self.v)
+        q = 1.0 / (1.0 + torch.sum(torch.pow(z.unsqueeze(1) -
+                   self.cluster_layer, 2), 2) / self.v)
         q = q.pow((self.v + 1.0) / 2.0)
         q = (q.t() / torch.sum(q, 1)).t()
         return q
+
 
 def target_distribution(q):
     weight = q**2 / q.sum(0)
     return (weight.t() / weight.sum(1)).t()
 
+
 def trainer(dataset):
     model = DAEGC(num_features=args.input_dim, hidden_size=args.hidden_size,
                   embedding_size=args.embedding_size, alpha=args.alpha, num_clusters=args.n_clusters).to(device)
     print(model)
-    optimizer = Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = Adam(model.parameters(), lr=args.lr,
+                     weight_decay=args.weight_decay)
 
     # data process
     dataset = utils.data_preprocessing(dataset)
@@ -78,7 +83,7 @@ def trainer(dataset):
         if epoch % args.update_interval == 0:
             # update_interval
             A_pred, z, Q = model(data, adj, M)
-            
+
             q = Q.detach().data.cpu().numpy().argmax(1)  # Q
             eva(y, q, epoch)
 
@@ -94,6 +99,7 @@ def trainer(dataset):
         loss.backward()
         optimizer.step()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='train',
@@ -107,7 +113,8 @@ if __name__ == "__main__":
     parser.add_argument('--hidden_size', default=256, type=int)
     parser.add_argument('--embedding_size', default=16, type=int)
     parser.add_argument('--weight_decay', type=int, default=5e-3)
-    parser.add_argument('--alpha', type=float, default=0.2, help='Alpha for the leaky_relu.')
+    parser.add_argument('--alpha', type=float, default=0.2,
+                        help='Alpha for the leaky_relu.')
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available()
     print("use cuda: {}".format(args.cuda))
@@ -115,26 +122,26 @@ if __name__ == "__main__":
 
     datasets = utils.get_dataset(args.name)
     dataset = datasets[0]
+    # print(dataset)
 
     if args.name == 'Citeseer':
-      args.lr = 0.0001
-      args.k = None
-      args.n_clusters = 6
+        args.lr = 0.0001
+        args.k = None
+        args.n_clusters = 6
     elif args.name == 'Cora':
-      args.lr = 0.0001
-      args.k = None
-      args.n_clusters = 7
+        args.lr = 0.0001
+        args.k = None
+        args.n_clusters = 7
     elif args.name == "Pubmed":
         args.lr = 0.001
         args.k = None
         args.n_clusters = 3
     else:
         args.k = None
-    
-    
+
     args.pretrain_path = f'./pretrain/predaegc_{args.name}_{args.epoch}.pkl'
     args.input_dim = dataset.num_features
 
-
     print(args)
-    trainer(dataset)
+    print(dataset)
+    # trainer(dataset)
